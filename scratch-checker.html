@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحقق من بطاقة اكشط واربح</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            background: none;
+        }
+        .hero-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--main-color, #2563eb);
+            z-index: 0;
+            overflow: hidden;
+        }
+        .floating-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.13);
+            animation: float 6s ease-in-out infinite;
+        }
+        .shape-1 { width: 80px; height: 80px; top: 20%; left: 10%; animation-delay: 0s; }
+        .shape-2 { width: 120px; height: 120px; top: 60%; left: 80%; animation-delay: 2s; }
+        .shape-3 { width: 60px; height: 60px; top: 80%; left: 20%; animation-delay: 4s; }
+        .shape-4 { width: 100px; height: 100px; top: 10%; left: 70%; animation-delay: 1s; }
+        .shape-5 { width: 140px; height: 140px; top: 40%; left: 5%; animation-delay: 3s; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .checker-container {
+            max-width: 420px;
+            margin: 7vh auto 0 auto;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            padding: 2.5rem 2rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        .checker-logo {
+            width: 120px;
+            margin-bottom: 1.5rem;
+        }
+        .checker-title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #2563eb;
+            margin-bottom: 1.2rem;
+        }
+        .checker-form {
+            margin-bottom: 1.5rem;
+        }
+        .checker-input {
+            width: 80%;
+            padding: 0.7rem 1rem;
+            font-size: 1.1rem;
+            border: 2px solid #2563eb;
+            border-radius: 18px;
+            outline: none;
+            margin-bottom: 1rem;
+            direction: ltr;
+            text-align: left;
+        }
+        .checker-btn {
+            background: #2563eb;
+            color: #fff;
+            font-weight: 700;
+            border: none;
+            padding: 0.7rem 2.2rem;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .checker-btn:hover {
+            background: #1742a0;
+        }
+        .checker-result {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 1.2rem;
+            color: #2563eb;
+        }
+        .checker-error {
+            color: #e53935;
+            font-weight: 700;
+        }
+        @media (max-width: 600px) {
+            .checker-container {
+                padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+            }
+            .checker-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-background">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+        </div>
+    </div>
+    <div class="checker-container" style="position:relative;z-index:2;box-shadow:0 8px 32px rgba(0,0,0,0.18);margin-top:7vh;">
+        <img src="assets/images/Whitelogo.png" alt="Galaxy Training Center" class="checker-logo" loading="lazy">
+        <div class="checker-title">تحقق من بطاقة اكشط واربح</div>
+        <form id="scratchForm" class="checker-form" autocomplete="off">
+            <input type="text" id="scratchCode" class="checker-input" placeholder="أدخل رقم البطاقة (مثال: NB123)" required>
+            <br>
+            <button type="submit" class="checker-btn">تحقق</button>
+        </form>
+        <div id="result" class="checker-result"></div>
+    </div>
+    <script>
+    // Helper to parse CSV
+    function parseCSV(text) {
+        const lines = text.trim().split(/\r?\n/);
+        const data = {};
+        for (let line of lines) {
+            const [code, prize] = line.split(',');
+            if (code && prize) data[code.trim().toUpperCase()] = prize.trim();
+        }
+        return data;
+    }
+    let codePrizeMap = {};
+    // Load CSV
+    fetch('scratch-cards/codes.csv')
+        .then(res => res.ok ? res.text() : Promise.reject())
+        .then(text => { codePrizeMap = parseCSV(text); })
+        .catch(() => { codePrizeMap = {}; });
+    // Form handler
+    document.getElementById('scratchForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const code = document.getElementById('scratchCode').value.trim().toUpperCase();
+        const resultDiv = document.getElementById('result');
+        if (!code) {
+            resultDiv.textContent = '';
+            return;
+        }
+        if (codePrizeMap[code]) {
+            resultDiv.innerHTML = 'مبروك! لقد ربحت <span style="color:#ffd600">' + codePrizeMap[code] + '</span>';
+            resultDiv.className = 'checker-result';
+        } else {
+            resultDiv.textContent = 'رقم البطاقة غير صحيح أو غير موجود';
+            resultDiv.className = 'checker-result checker-error';
+        }
+    });
+    </script>
+</body>
+</html> 
